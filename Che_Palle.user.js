@@ -5,10 +5,10 @@
 // @author       Giorgio Casati
 // @include      *
 // @grant        none
-// @namespace    http://dfmix-git01/giorgio.casati/TamperMonkeyScripts
-// @updateURL    http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/Che_Palle.user.js
-// @downloadURL  http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/Che_Palle.user.js
-// @supportURL   http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/issues
+// @namespace    https://github.com/puzza/CanvasGames
+// @updateURL    https://github.com/puzza/CanvasGames/raw/master/Che_Palle.user.js
+// @downloadURL  https://github.com/puzza/CanvasGames/raw/master/Che_Palle.user.js
+// @supportURL   https://github.com/puzza/CanvasGames/issues
 // ==/UserScript==
 
 (function() {
