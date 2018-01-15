@@ -3,7 +3,7 @@
 // @version      0.1
 // @description  Bouncing balls are so funny !!!
 // @author       Giorgio Casati
-// @match        www.giorgio.it
+// @include      *
 // @grant        none
 // @namespace    http://dfmix-git01/giorgio.casati/TamperMonkeyScripts
 // @updateURL    http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/Che_Palle.user.js
