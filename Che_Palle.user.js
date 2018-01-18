@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Che_Palle
-// @version      0.1
+// @version      0.2
 // @description  Bouncing balls are so funny !!!
 // @author       Giorgio Casati
 // @include      *
@@ -33,10 +33,10 @@
     var ctx = getCtx(container);
     var game = chePalle(ctx);
 
-    window.addEventListener('mousedown',function(e){
+    container.addEventListener('mousedown',function(e){
         game.startBuildNewBall(e.layerX, e.layerY);
     });
-    window.addEventListener('mouseup',function(e){
+    container.addEventListener('mouseup',function(e){
         game.start();
     });
 
@@ -52,11 +52,12 @@
             newX : 0,
             newY : 0,
             maxNewR : 0,
+            minNewR : 25,
             start : function(){
                 if(_this.intervalId !== null){
                     clearInterval(_this.intervalId);
                 }
-                if(_this.newR > 0){
+                if(_this.newR >= _this.minNewR){
                     _this.addBall(_this.newX, _this.newY, _this.newR, _this.nextColor());
                 }
                 _this.intervalId = setInterval(_this.update, 20);
@@ -65,7 +66,7 @@
                 if(_this.intervalId !== null){
                     clearInterval(_this.intervalId);
                 }
-                _this.newR = 0;
+                _this.newR = _this.minNewR - 1;
                 _this.newX = xC;
                 _this.newY = yC;
                 var min = Math.min(125, xC, yC, game.ctx.getWidth()-xC, game.ctx.getHeight()-yC);
@@ -73,12 +74,16 @@
                     var ball = _this.balls[i];
                     min = Math.min(min, ball.getMaxR(xC, yC));
                 }
-                _this.maxNewR = min;
-                _this.intervalId = setInterval(_this.updateBuildNewBall, 20);
+                if(min >= _this.minNewR){
+                    _this.maxNewR = min;
+                    _this.intervalId = setInterval(_this.updateBuildNewBall, 20);
+                }else{
+                    _this.start();
+                }
             },
             updateBuildNewBall : function(){
                 if(_this.newR > _this.maxNewR){
-                    _this.newR = 0;
+                    _this.newR = _this.minNewR;
                 }
                 _this.ctx.clear();
                 for(var i = 0; i < _this.balls.length; i++){
@@ -115,21 +120,57 @@
                     },
                     r : r,
                     color : color,
+                    accelerated : true,
                     crash : function(oth){
-                        if(this.isCrashing(oth.x.c, oth.y.c, oth.r) && ((this.x.c-oth.x.c)*(this.x.v-oth.x.v)<0 || (this.y.c-oth.y.c)*(this.y.v-oth.y.v)<0)){
-                            var thisSplit = this.getSplittedV(oth.x.c, oth.y.c);
-                            var othSplit = oth.getSplittedV(this.x.c, this.y.c);
-                            this.x.v = thisSplit.thisV.x + othSplit.othV.x;
-                            this.y.v = thisSplit.thisV.y + othSplit.othV.y;
-                            oth.x.v = othSplit.thisV.x + thisSplit.othV.x;
-                            oth.y.v = othSplit.thisV.y + thisSplit.othV.y;
+                        if(this.isCrashing(oth)){
+                            this.doCrash(oth);
+                            this.accelerated = false;
+                            oth.accelerated = false;
                         }
                     },
-                    isCrashing : function(othX, othY, othR){
-                        var d2 = this.getDistance2(othX, othY);
-                        var r1 = this.r + othR;
-                        var r2 = r1*r1;
-                        return d2 <= r2;
+                    isCrashing : function(oth){
+                        if((this.x.c-oth.x.c)*(this.x.v-oth.x.v)<0 || (this.y.c-oth.y.c)*(this.y.v-oth.y.v)<0){
+                            var d2 = this.getDistance2(oth.x.c, oth.y.c);
+                            var r1 = this.r + oth.r;
+                            var r2 = r1*r1;
+                            return d2 <= r2;
+                        }
+                        return false;
+                    },
+                    doCrash : function(oth){
+                        var thisSplit = this.getSplittedV(oth);
+                        var othSplit = oth.getSplittedV(this);
+                        this.x.v = thisSplit.thisV.x + othSplit.othV.x;
+                        this.y.v = thisSplit.thisV.y + othSplit.othV.y;
+                        oth.x.v = othSplit.thisV.x + thisSplit.othV.x;
+                        oth.y.v = othSplit.thisV.y + thisSplit.othV.y;
+                        if(this.r > oth.r){
+                            oth.changeC(this);
+                        }else{
+                            this.changeC(oth);
+                        }
+                    },
+                    changeC : function(oth){
+                        var d = oth.r+this.r;
+                        var deltaD = d - Math.sqrt(this.getDistance2(oth.x.c,oth.y.c));
+                        var deltaX = 0;
+                        var deltaY = deltaD;
+                        var diffX = this.x.c-oth.x.c;
+                        var diffY = this.y.c-oth.y.c;
+                        if(diffX !== 0){
+                            var a1 = Math.abs((diffY)/(diffX));
+                            deltaX = Math.sqrt((deltaD*deltaD)/((a1*a1)+1));
+                            deltaY = deltaX*a1;
+                        }
+                        if(diffX < 0){
+                            deltaX = -deltaX;
+                        }
+                        if(diffY < 0){
+                            deltaY = -deltaY;
+                        }
+                        this.x.c += deltaX;
+                        this.y.c += deltaY;
+                        //console.log('('+this.x.c+'; '+this.y.c+') con deltaD:'+deltaD+' e a1:'+a1);
                     },
                     getMaxR : function(othX, othY){
                         var d2 = this.getDistance2(othX, othY);
@@ -140,30 +181,31 @@
                         var deltaY = this.y.c - othY;
                         return (deltaX*deltaX) + (deltaY*deltaY);
                     },
-                    getSplittedV : function(othX, othY){
-                        if(othX !== this.x.c && othY !== this.y.c){
-                            var a1 = (othY - this.y.c)/(othX - this.x.c);
+                    getSplittedV : function(oth){
+                        var ratioM = (2*this.r)/(this.r+oth.r);
+                        if(oth.x.c !== this.x.c && oth.y.c !== this.y.c){
+                            var a1 = (oth.y.c - this.y.c)/(oth.x.c - this.x.c);
                             var a2 = -1/a1;
                             var othVX = ((a2*this.x.v)-this.y.v)/(a2-a1);
                             var othVY = othVX*a1;
-                            var thisVX = this.x.v - othVX;//((a1*this.x.v)-this.y.v)/(a1-a2);
-                            var thisVY = this.y.v - othVY;//thisVX*a2;
-                            //console.log(a1 + '; '+ a2);
-                            //console.log('('+this.x.v+'; '+this.y.v+') = ('+thisVX+'; '+thisVY+') + ('+othVX+'; '+othVY+')');
-                            return {thisV:{x:thisVX,y:thisVY},othV:{x:othVX,y:othVY}};
-                        }else if(othX === this.x.c){
-                            return {thisV:{x:this.x.v,y:0},othV:{x:0,y:this.y.v}};
+                            var thisVX = this.x.v - othVX;
+                            var thisVY = this.y.v - othVY;
+                            return {thisV:{x:thisVX,y:thisVY},othV:{x:othVX*ratioM,y:othVY*ratioM}};
+                        }else if(oth.x.c === this.x.c){
+                            return {thisV:{x:this.x.v,y:0},othV:{x:0,y:this.y.v*ratioM}};
                         }else{
-                            return {thisV:{x:0,y:this.y.v},othV:{x:this.x.v,y:0}};
+                            return {thisV:{x:0,y:this.y.v},othV:{x:this.x.v*ratioM,y:0}};
                         }
                     },
                     move : function(game){
-                        this.moveOnAxis(game, this.x, 0, game.ctx.getWidth());
-                        this.moveOnAxis(game, this.y, 0, game.ctx.getHeight());
+                        if(this.accelerated){
+                            this.moveOnAxis(game, this.x, 0, game.ctx.getWidth());
+                            this.moveOnAxis(game, this.y, 0, game.ctx.getHeight());
+                        }
+                        this.accelerated = true;
                     },
                     moveOnAxis : function(game, axis, min, max){
                         axis.v += axis.a;
-
                         var newC = axis.c + axis.v;
                         if(newC - this.r < min){
                             axis.v = -axis.v;
