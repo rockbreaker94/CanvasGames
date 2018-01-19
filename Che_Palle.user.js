@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Che_Palle
-// @version      0.2
+// @version      0.3
 // @description  Bouncing balls are so funny !!!
 // @author       Giorgio Casati
 // @include      *
@@ -29,6 +29,7 @@
     container.width = w;
     container.height = h;
     container.id='mioCanvas';
+    body.appendChild(container);
 
     var ctx = getCtx(container);
     var game = chePalle(ctx);
@@ -40,13 +41,34 @@
         game.start();
     });
 
-    body.appendChild(container);
+    window.addEventListener("keyup", function(e){
+        var keyCode = e.keyCode;
+        if(keyCode>36 && keyCode<41){
+            switch(keyCode){
+                case 37:
+                    game.setGravity({x:-1,y:0});
+                    break;
+                case 38:
+                    game.setGravity({x:0,y:-1});
+                    break;
+                case 39:
+                    game.setGravity({x:1,y:0});
+                    break;
+                case 40:
+                    game.setGravity({x:0,y:1});
+                    break;
+            }
+        }else if(keyCode === 13 || keyCode ===  27 || keyCode === 32){
+            game.stopBalls();
+        }
+    });
 
     //////////////////////////////
     function chePalle(ctx){
         var _this = {
             ctx : ctx,
             balls : [],
+            g : {x:0, y:1},
             intervalId : null,
             newR : 0,
             newX : 0,
@@ -90,7 +112,7 @@
                     var ball = _this.balls[i];
                     ball.draw(_this.ctx);
                 }
-                _this.newBall(_this.newX, _this.newY, _this.newR++, 'black').draw(_this.ctx);
+                _this.newBall(_this.newX, _this.newY, _this.newR++, _this.g, 'black').draw(_this.ctx);
             },
             update : function(){
                 _this.ctx.clear();
@@ -104,28 +126,25 @@
                 }
             },
             addBall : function(cX, cY, r, color){
-                _this.balls.push(_this.newBall(cX, cY, r, color));
+                _this.balls.push(_this.newBall(cX, cY, r, _this.g, color));
             },
-            newBall : function(cX, cY, r, color){
+            newBall : function(cX, cY, r, g, color){
                 var ball = {
                     x : {
-                        a : 0,
+                        a : g.x,
                         v : 0,
                         c: cX
                     },
                     y : {
-                        a : 1,
+                        a : g.y,
                         v : 0,
                         c : cY
                     },
                     r : r,
                     color : color,
-                    accelerated : true,
                     crash : function(oth){
                         if(this.isCrashing(oth)){
                             this.doCrash(oth);
-                            this.accelerated = false;
-                            oth.accelerated = false;
                         }
                     },
                     isCrashing : function(oth){
@@ -198,11 +217,8 @@
                         }
                     },
                     move : function(game){
-                        if(this.accelerated){
-                            this.moveOnAxis(game, this.x, 0, game.ctx.getWidth());
-                            this.moveOnAxis(game, this.y, 0, game.ctx.getHeight());
-                        }
-                        this.accelerated = true;
+                        this.moveOnAxis(game, this.x, 0, game.ctx.getWidth());
+                        this.moveOnAxis(game, this.y, 0, game.ctx.getHeight());
                     },
                     moveOnAxis : function(game, axis, min, max){
                         axis.v += axis.a;
@@ -224,10 +240,28 @@
                 };
                 return ball;
             },
-            colors : ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'],
+            colors : [function(){return pulse(255, 0, 150, 10);}, function(){return '#ff0000';}, function(){return '#ffff00';}, function(){return '#00ff00';}, function(){return '#00ffff';}, function(){return '#0000ff';}, function(){return '#ff00ff';}, function(){return pulse(255, 0, 0, 1);}],
             currentColor : 0,
             nextColor : function(){
-                return _this.colors[_this.currentColor++%_this.colors.length];
+                return _this.colors[_this.currentColor++%_this.colors.length]();
+            },
+            setGravity : function(g){
+                _this.g = g;
+                for(var i = 0; i < _this.balls.length; i++){
+                    var ball = _this.balls[i];
+                    ball.x.a = g.x;
+                    ball.y.a = g.y;
+                }
+            },
+            stopBalls : function(){
+                _this.g = {x:0,y:0};
+                for(var i = 0; i < _this.balls.length; i++){
+                    var ball = _this.balls[i];
+                    ball.x.a = 0;
+                    ball.x.v = 0;
+                    ball.y.a = 0;
+                    ball.y.v = 0;
+                }
             }
         };
         return _this;
@@ -273,5 +307,63 @@
             }
         };
         return obj;
+    }
+
+    function pulse(r,g,b,delta){
+        var c = {
+            r:r,
+            g:g,
+            b:b,
+            delta:delta,
+            next : function(){
+                if(c.r === 255 && c.g !== 255){
+                    if(c.b === 0){
+                        c.g+=c.delta;
+                    }else{
+                        c.b-=c.delta;
+                    }
+                }else if(c.g === 255 && c.b !== 255){
+                    if(c.r === 0){
+                        c.b+=c.delta;
+                    }else{
+                        c.r-=c.delta;
+                    }
+                }else if(c.b === 255 && c.r !== 255){
+                    if(c.g === 0){
+                        c.r+=c.delta;
+                    }else{
+                        c.g-=c.delta;
+                    }
+                }else{
+                    alert('colore impossibile');
+                }
+                c.r=normalize(0, c.r, 255);
+                c.g=normalize(0, c.g, 255);
+                c.b=normalize(0, c.b, 255);
+                return c;
+            },
+            toString : function(){
+                var s = '#'+getHex(c.r)+getHex(c.g)+getHex(c.b);
+                c.next();
+                return s;
+            },
+        };
+        return c;
+    }
+    function getHex(decimal){
+        var hex = decimal.toString(16);
+        if(hex.length === 1){
+            hex = '0'+hex;
+        }
+        return hex;
+    }
+    function normalize(min, n, max){
+        if(n < min){
+            return min;
+        }else if(n > max){
+            return max;
+        }else{
+            return n;
+        }
     }
 })();
