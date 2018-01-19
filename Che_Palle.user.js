@@ -34,6 +34,10 @@
     var ctx = getCtx(container);
     var game = chePalle(ctx);
 
+    container.addEventListener('mousemove',function(e){
+        //console.log(e);
+        game.mousePos = {x:e.layerX, y:e.layerY};
+    });
     container.addEventListener('mousedown',function(e){
         game.startBuildNewBall(e.layerX, e.layerY);
     });
@@ -70,6 +74,7 @@
             balls : [],
             g : {x:0, y:1},
             intervalId : null,
+            mousePos : {x:0,y:0},
             newR : 0,
             newX : 0,
             newY : 0,
@@ -88,10 +93,10 @@
                 if(_this.intervalId !== null){
                     clearInterval(_this.intervalId);
                 }
-                _this.newR = _this.minNewR - 1;
+                _this.newR = 0;
                 _this.newX = xC;
                 _this.newY = yC;
-                var min = Math.min(125, xC, yC, game.ctx.getWidth()-xC, game.ctx.getHeight()-yC);
+                var min = Math.min(xC, yC, game.ctx.getWidth()-xC, game.ctx.getHeight()-yC);
                 for(var i = 0; i < _this.balls.length; i++){
                     var ball = _this.balls[i];
                     min = Math.min(min, ball.getMaxR(xC, yC));
@@ -104,15 +109,16 @@
                 }
             },
             updateBuildNewBall : function(){
-                if(_this.newR > _this.maxNewR){
-                    _this.newR = _this.minNewR;
-                }
+                var dX = _this.newX-_this.mousePos.x;
+                var dY = _this.newY-_this.mousePos.y;
+                var d = Math.sqrt((dX*dX)+(dY*dY),2);
+                _this.newR = Math.max(_this.minNewR, Math.min(d,_this.maxNewR));
                 _this.ctx.clear();
                 for(var i = 0; i < _this.balls.length; i++){
                     var ball = _this.balls[i];
                     ball.draw(_this.ctx);
                 }
-                _this.newBall(_this.newX, _this.newY, _this.newR++, _this.g, 'black').draw(_this.ctx);
+                _this.newBall(_this.newX, _this.newY, _this.newR, _this.g, 'black').draw(_this.ctx);
             },
             update : function(){
                 _this.ctx.clear();
