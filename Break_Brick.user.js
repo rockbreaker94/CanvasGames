@@ -13,16 +13,22 @@
 
 (function() {
     'use strict';
-    var body = document.getElementsByTagName('body')[0];
-    while (body.firstChild) {
-        body.removeChild(body.firstChild);
+    var html = document.getElementsByTagName('html')[0];
+    while (html.firstChild) {
+        html.removeChild(html.firstChild);
     }
-    var w = document.body.offsetWidth;
-    var h = document.body.offsetHeight;//screen.height-50;
+    var body = document.createElement('body');
+    body.style.backgroundColor = 'black';
+    html.appendChild(body);
+
+    var w = Math.min(window.innerWidth,2*window.innerHeight);
+    var h = Math.min(window.innerWidth/2,window.innerHeight);
     var container = document.createElement('canvas');
-    container.style.border = '2px solid black';
+    container.style.backgroundColor = 'white';
+    container.style.border = '0px';
     container.style.position = 'fixed';
-    container.style.left = ((screen.width-w)/2)+'px';
+    container.style.left = ((window.innerWidth-w)/2)+'px';
+    container.style.top = ((window.innerHeight-h)/2)+'px';
     container.width = w;
     container.height = h;
     container.id='mioCanvas';
