@@ -299,7 +299,7 @@
                 var p = {
                     points : 0,
                     totalPoints : 0,
-                    life : 1,//3,
+                    life : 3,
                     lifeMax : 3,
                     draw : function(ctx, ballR){
                         //console.log(ballR);
