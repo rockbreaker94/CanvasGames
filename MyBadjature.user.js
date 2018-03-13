@@ -5,10 +5,10 @@
 // @author        Giorgio Casati
 // @match         http://accessi.italrgi.it/infopoint/infopoint.exe?f=c
 // @grant         none
-// @namespace     http://dfmix-git01/giorgio.casati/TamperMonkeyScripts
-// @updateURL     http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/MyBadjature.user.js
-// @downloadURL   http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/MyBadjature.user.js
-// @supportURL    http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/issues
+// @namespace     https://github.com/puzza/CanvasGames
+// @updateURL     https://github.com/puzza/CanvasGames/raw/master/MyBadjature.user.js
+// @downloadURL   https://github.com/puzza/CanvasGames/raw/master/MyBadjature.user.js
+// @supportURL    https://github.com/puzza/CanvasGames/issues
 // ==/UserScript==
 
 (function () {
@@ -769,7 +769,7 @@
             img.totW = this.width;
             img.totH = this.height;
         };
-        imgDom.src = 'http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/Images/'+imgName+'.png';
+        imgDom.src = 'https://github.com/puzza/CanvasGames/raw/master/Images/'+imgName+'.png';
         return img;
     }
 
@@ -779,7 +779,7 @@
         document.body.appendChild(audio);
 
         var source = document.createElement('source');
-        source.src = 'http://dfmix-git01/giorgio.casati/TamperMonkeyScripts/raw/master/Musics/'+audioName+'.mp3';
+        source.src = 'https://github.com/puzza/CanvasGames/raw/master/Musics/'+audioName+'.mp3';
         source.type = 'audio/mpeg';
         audio.appendChild(source);
         return audio;
