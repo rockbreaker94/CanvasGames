@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          MyBadjature
-// @version       0.13
+// @version       0.14
 // @description   When can I go home today ?!
 // @author        Giorgio Casati
 // @match         http://accessi.italrgi.it/infopoint/infopoint.exe?f=c
@@ -183,6 +183,8 @@
             //Tamarrate
             if(times.length == 3){
                 var fanfare = buildAudio('fanfare');
+                fanfare.volume = 0.35;
+
                 dayRow.find('td').removeAttr('width').removeAttr('colspan');
                 var tdContainer = $('<td colspan="2"/>').css({backgroundColor:cell.attr('bgcolor')});
                 tdContainer.css({maxWidth:tdContainer.width()});
@@ -267,7 +269,7 @@
                 saintPatrickDay(buildCtx());
             }
         }else if(month === 4 && day > 21 && day < 26){
-            playAudio('25Aprile');
+            playAudio('25Aprile').volume = 0.4;
         }
 
         if(/*true){*/dayDiffToEaster >= 0 && dayDiffToEaster < 7){
@@ -791,8 +793,10 @@
         audio.style.position = 'fixed';
         audio.style.bottom = 0;
         audio.style.left = 0;
+        audio.style.zIndex = 1;
         audio.autoplay = true;
         audio.controls = true;
+        return audio;
     }
 
     function getCtx(canvas){
