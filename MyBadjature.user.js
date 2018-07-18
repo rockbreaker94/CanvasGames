@@ -3,7 +3,7 @@
 // @version       0.14
 // @description   When can I go home today ?!
 // @author        Giorgio Casati
-// @match         http://accessi.italrgi.it/infopoint/infopoint.exe?f=c
+// @match         https://accessi.ad.rgigroup.com/infopoint/infopoint.exe?f=c*
 // @grant         none
 // @namespace     https://github.com/puzza/CanvasGames
 // @updateURL     https://github.com/puzza/CanvasGames/raw/master/MyBadjature.user.js
@@ -13,7 +13,8 @@
 
 (function () {
     'use strict';
-
+    $("#header").css("display","none");
+    $("#page-container-infopoint").css("top","0px");
     //Costanti
     var TRE_ORE = 180;
     var OTTO_ORE = 480;
@@ -48,13 +49,17 @@
         var times = [];
         // gli orari sono negli span multipli di 3
         var arrSpan = cell.find('span');
-        for(var k = 0, i = 0, b = 0; k < arrSpan.length; k = k + 3){
+        var arrSelect = cell.find("select");
+        var arrImg = cell.find("img");
+        for(var k = 0, i = 0, b = 0, c = 0; k < arrSpan.length; k = k + 2, c+=1){
             // Raccolgo gli orari convertendo in minuti
             var timeCell = $(arrSpan[k]);
-            var type = $(arrSpan[k+2]).text().trim();
+            if($(arrImg[c]).attr("src"))
+                var img = $(arrImg[c]).attr("src").split("/")[1].search("orange");
+            var type = $(arrSelect[c]).val();
             var oreEMin = timeCell.text().trim().split(':');
             var time = (oreEMin[0]*60) + (oreEMin[1]*1);
-            if(type === 'Entrata' || type === 'Uscita'){
+            if((type === 'E' || type === 'U') && img===-1){
                 times[i++] = time;
             }else if(lastBreak){
                 breakTime += (time - lastBreak);
