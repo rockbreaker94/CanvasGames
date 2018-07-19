@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          MyBadjature
-// @version       0.14
+// @version       0.15
 // @description   When can I go home today ?!
 // @author        Giorgio Casati
 // @match         http://accessi.italrgi.it/infopoint/infopoint.exe?f=c
