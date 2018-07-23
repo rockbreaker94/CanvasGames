@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          MyBadjature
-// @version       0.14
+// @version       0.15
 // @description   When can I go home today ?!
 // @author        Giorgio Casati
 // @match         https://accessi.ad.rgigroup.com/infopoint/infopoint.exe?f=c*
@@ -160,10 +160,10 @@
         var dayRow = $(rows[j-1]);
         if(1 * dayRow.find('span')[0].textContent.split('-')[0] === today){
             // Scroll to row
-            var body = $('body');
+            var body = $("#page-container-infopoint");
             body.animate({
                 scrollTop: dayRow.offset().top - body.offset().top - 1
-            });
+            },500);
 
             // Appendo riga dei totali
             var totalCell = $('<td/>');
@@ -191,7 +191,8 @@
                 fanfare.volume = 0.35;
 
                 dayRow.find('td').removeAttr('width').removeAttr('colspan');
-                var tdContainer = $('<td colspan="2"/>').css({backgroundColor:cell.attr('bgcolor')});
+                var tdContainer = dayRow.find(".cartell-fasce-orario");
+                tdContainer.css({backgroundColor:cell.attr('bgcolor')});
                 tdContainer.css({maxWidth:tdContainer.width()});
                 dayRow.append(tdContainer);
                 tdContainer.append('<canvas id="progressBar" width="'+tdContainer.width()+'" height="'+tdContainer.height()+'" style="display:block;border:0px"/>');//width:100%;height:30px;
