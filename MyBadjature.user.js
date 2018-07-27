@@ -43,147 +43,147 @@
 
         var row = $(rows[j]);
         var cell = $(row.find('td')[0]);
-
-        var breakTime = 0;
-        var lastBreak = null;
-        var times = [];
-        // gli orari sono negli span multipli di 3
-        var arrSpan = cell.find('span');
-        var arrSelect = cell.find("select");
-        var arrImg = cell.find("img");
-        for(var k = 0, i = 0, b = 0, c = 0; k < arrSpan.length; k = k + 2, c+=1){
-            // Raccolgo gli orari convertendo in minuti
-            var timeCell = $(arrSpan[k]);
-            if($(arrImg[c]).attr("src"))
-                var img = $(arrImg[c]).attr("src").split("/")[1].search("orange");
-            var type = $(arrSelect[c]).val();
-            var oreEMin = timeCell.text().trim().split(':');
-            var time = (oreEMin[0]*60) + (oreEMin[1]*1);
-            if((type === 'E' || type === 'U') && img===-1){
-                times[i++] = time;
-            }else if(lastBreak){
-                breakTime += (time - lastBreak);
-                lastBreak = null;
-            }else{
-                lastBreak = time;
-            }
-        }
-
-        // FIXME Per ora considero solo i casi di 3 o 4 badjature, non considero i casi di in-break o di badjature dimenticate
-        // 1) normalizzo
-        var ritardo = 0;
-
-        // 1.a) Normalizzo entrata mattina
-        if(times[0] < OTTO_E_UN_QUARTO){
-            times[0] = OTTO_E_UN_QUARTO;
-        }else if(times[0] > NOVE){
-            ritardo += roundUp(times[0] - NOVE);
-            times[0] = NOVE;
-        }
-
-        // 1.b) Normalizzo uscita di pranzo
-        if(times[1] < LA_MEZZA){
-            ritardo += roundUp(LA_MEZZA - times[1]);
-            times[1] = LA_MEZZA;
-        }
-
-        // 1.c1) Normalizzo i 45 minuti di pausa
-        if(times[2] < (times[1] + 45)){
-            times[2] = times[1] + 45;
-        }
-
-        // 1.c2) Normalizzo entrata da pranzo
-        if(times[2] > DUE_E_MEZZA){
-            ritardo += roundUp(times[2] - DUE_E_MEZZA);
-            times[2] = DUE_E_MEZZA;
-        }
-
-        var resultCell = $('<td bgcolor="'+cell.attr('bgcolor')+'"/>');
-        if(times.length == 4){
-            // 1.d) Normalizzo uscita
-            if(times[3] < CINQUE){
-                ritardo += roundUp(CINQUE - times[3]);
-                times[3] = CINQUE;
-            }
-
-            // Scrivo i totali
-            var workedTime = roundDown((times[1]-times[0]) + (times[3]-times[2]) - breakTime);
-            if(workedTime < OTTO_ORE){
-                var diff = OTTO_ORE - workedTime;
-                eroso += diff;
-                resultCell.append($('<div>ORDINARIE: '+toHourAndMinString(workedTime - ritardo)+'</div>'));
-                resultCell.append($('<div>IN MENO:   '+toHourAndMinString(diff)+'</div>'));
-            }else{
-                var extraTime = workedTime - OTTO_ORE;
-                resultCell.append($('<div>ORDINARIE: '+toHourAndMinString(OTTO_ORE - ritardo)+'</div>'));
-                if(extraTime > 0){
-                    monteOre += extraTime;
-                    resultCell.append($('<div>IN PIU\':   '+toHourAndMinString(extraTime)+'</div>'));
+        if(cell.find("a.cartellino-open-giustificazioni").size()<=0){
+            var breakTime = 0;
+            var lastBreak = null;
+            var times = [];
+            // gli orari sono negli span multipli di 3
+            var arrSpan = cell.find('span');
+            var arrSelect = cell.find("select");
+            var arrImg = cell.find("img");
+            for(var k = 0, i = 0, b = 0, c = 0; k < arrSpan.length; k = k + 2, c+=1){
+                // Raccolgo gli orari convertendo in minuti
+                var timeCell = $(arrSpan[k]);
+                if($(arrImg[c]).attr("src"))
+                    var img = $(arrImg[c]).attr("src").split("/")[1].search("orange");
+                var type = $(arrSelect[c]).val();
+                var oreEMin = timeCell.text().trim().split(':');
+                var time = (oreEMin[0]*60) + (oreEMin[1]*1);
+                if((type === 'E' || type === 'U') && img===-1){
+                    times[i++] = time;
+                }else if(lastBreak){
+                    breakTime += (time - lastBreak);
+                    lastBreak = null;
+                }else{
+                    lastBreak = time;
                 }
             }
 
-            if(breakTime > 0){
-                resultCell.append($('<div>FUMATI:   '+toHourAndMinString(breakTime)+'</div>'));
+            // FIXME Per ora considero solo i casi di 3 o 4 badjature, non considero i casi di in-break o di badjature dimenticate
+            // 1) normalizzo
+            var ritardo = 0;
+
+            // 1.a) Normalizzo entrata mattina
+            if(times[0] < OTTO_E_UN_QUARTO){
+                times[0] = OTTO_E_UN_QUARTO;
+            }else if(times[0] > NOVE){
+                ritardo += roundUp(times[0] - NOVE);
+                times[0] = NOVE;
             }
 
-            if(ritardo > 0){
-                eroso += ritardo;
-                resultCell.append($('<div>RITARDO:   '+toHourAndMinString(ritardo)+'</div>'));
-            }
-        }else if(times.length == 3){
-            var exitTime = OTTO_ORE - times[1] + times[0] + times[2] + breakTime;
-            resultCell.append($('<div>USCITA:   '+toHourAndMinString(exitTime)+'</div>'));
-
-            if(breakTime > 0){
-                resultCell.append($('<div>FUMATI:   '+toHourAndMinString(breakTime)+'</div>'));
+            // 1.b) Normalizzo uscita di pranzo
+            if(times[1] < LA_MEZZA){
+                ritardo += roundUp(LA_MEZZA - times[1]);
+                times[1] = LA_MEZZA;
             }
 
-            if(ritardo > 0){
-                resultCell.append($('<div>RITARDO:   '+toHourAndMinString(ritardo)+'</div>'));
-                //    if(eroso < TRE_ORE){
-                //        resultCell.append($('<div>RECUPERO USCENDO:   '+toHourAndMinString(exitTime+ritardo)+'</div>'));
-                //    }
+            // 1.c1) Normalizzo i 45 minuti di pausa
+            if(times[2] < (times[1] + 45)){
+                times[2] = times[1] + 45;
             }
 
-            var effective = (monteOre > TRE_ORE ? TRE_ORE : monteOre) - eroso;
-            if(effective > 0){
-                var wantedExit = exitTime + ritardo - effective;
-                if(wantedExit < CINQUE){
-                    wantedExit = roundUp(wantedExit);
+            // 1.c2) Normalizzo entrata da pranzo
+            if(times[2] > DUE_E_MEZZA){
+                ritardo += roundUp(times[2] - DUE_E_MEZZA);
+                times[2] = DUE_E_MEZZA;
+            }
+
+            var resultCell = $('<td bgcolor="'+cell.attr('bgcolor')+'"/>');
+            if(times.length == 4){
+                // 1.d) Normalizzo uscita
+                if(times[3] < CINQUE){
+                    ritardo += roundUp(CINQUE - times[3]);
+                    times[3] = CINQUE;
                 }
-                resultCell.append($('<div>ERODENDO:'+toHourAndMinString(wantedExit)+'</div>'));
-            }
-        }
-        row.append(resultCell);
 
-        // Se è riga di oggi
-        var dayRow = $(rows[j-1]);
-        if(1 * dayRow.find('span')[0].textContent.split('-')[0] === today){
-            // Scroll to row
-            var body = $("#page-container-infopoint");
-            body.animate({
-                scrollTop: dayRow.offset().top - body.offset().top - 1
-            },500);
+                // Scrivo i totali
+                var workedTime = roundDown((times[1]-times[0]) + (times[3]-times[2]) - breakTime);
+                if(workedTime < OTTO_ORE){
+                    var diff = OTTO_ORE - workedTime;
+                    eroso += diff;
+                    resultCell.append($('<div>ORDINARIE: '+toHourAndMinString(workedTime - ritardo)+'</div>'));
+                    resultCell.append($('<div>IN MENO:   '+toHourAndMinString(diff)+'</div>'));
+                }else{
+                    var extraTime = workedTime - OTTO_ORE;
+                    resultCell.append($('<div>ORDINARIE: '+toHourAndMinString(OTTO_ORE - ritardo)+'</div>'));
+                    if(extraTime > 0){
+                        monteOre += extraTime;
+                        resultCell.append($('<div>IN PIU\':   '+toHourAndMinString(extraTime)+'</div>'));
+                    }
+                }
 
-            // Appendo riga dei totali
-            var totalCell = $('<td/>');
-            if(monteOre > TRE_ORE){
-                totalCell.append($('<div>MONTE ORE:'+toHourAndMinString(TRE_ORE)+'</div>'));
-                totalCell.append($('<div>STRAORDINARI:'+toHourAndMinString(monteOre-TRE_ORE)+'</div>'));
-                monteOre = TRE_ORE;
-            }else{
-                totalCell.append($('<div>MONTE ORE:'+toHourAndMinString(monteOre)+'</div>'));
+                if(breakTime > 0){
+                    resultCell.append($('<div>FUMATI:   '+toHourAndMinString(breakTime)+'</div>'));
+                }
+
+                if(ritardo > 0){
+                    eroso += ritardo;
+                    resultCell.append($('<div>RITARDO:   '+toHourAndMinString(ritardo)+'</div>'));
+                }
+            }else if(times.length == 3){
+                var exitTime = OTTO_ORE - times[1] + times[0] + times[2] + breakTime;
+                resultCell.append($('<div>USCITA:   '+toHourAndMinString(exitTime)+'</div>'));
+
+                if(breakTime > 0){
+                    resultCell.append($('<div>FUMATI:   '+toHourAndMinString(breakTime)+'</div>'));
+                }
+
+                if(ritardo > 0){
+                    resultCell.append($('<div>RITARDO:   '+toHourAndMinString(ritardo)+'</div>'));
+                    //    if(eroso < TRE_ORE){
+                    //        resultCell.append($('<div>RECUPERO USCENDO:   '+toHourAndMinString(exitTime+ritardo)+'</div>'));
+                    //    }
+                }
+
+                var effective = (monteOre > TRE_ORE ? TRE_ORE : monteOre) - eroso;
+                if(effective > 0){
+                    var wantedExit = exitTime + ritardo - effective;
+                    if(wantedExit < CINQUE){
+                        wantedExit = roundUp(wantedExit);
+                    }
+                    resultCell.append($('<div>ERODENDO:'+toHourAndMinString(wantedExit)+'</div>'));
+                }
             }
-            if(eroso){
-                totalCell.append($('<div>EROSO:'+toHourAndMinString(eroso)+'</div>'));
-            }
-            if(monteOre < eroso){
-                totalCell.append($('<div>FERIE CONSUMATE:'+toHourAndMinString(eroso-monteOre)+'</div>'));
-            }else{
-                totalCell.append($('<div>MONTE ORE RESIDUO:'+toHourAndMinString(monteOre-eroso)+'</div>'));
-            }
-            var totalRow = $('<tr/>').css({textAlign:'right', backgroundColor:cell.attr('bgcolor')}).append($('<td/>')).append($('<td/>')).append(totalCell).append($('<td/>'));
-            row.after(totalRow);
+            row.append(resultCell);
+
+            // Se è riga di oggi
+            var dayRow = $(rows[j-1]);
+            if(1 * dayRow.find('span')[0].textContent.split('-')[0] === today){
+                // Scroll to row
+                var body = $("#page-container-infopoint");
+                body.animate({
+                    scrollTop: dayRow.offset().top - body.offset().top - 1
+                },500);
+
+                // Appendo riga dei totali
+                var totalCell = $('<td/>');
+                if(monteOre > TRE_ORE){
+                    totalCell.append($('<div>MONTE ORE:'+toHourAndMinString(TRE_ORE)+'</div>'));
+                    totalCell.append($('<div>STRAORDINARI:'+toHourAndMinString(monteOre-TRE_ORE)+'</div>'));
+                    monteOre = TRE_ORE;
+                }else{
+                    totalCell.append($('<div>MONTE ORE:'+toHourAndMinString(monteOre)+'</div>'));
+                }
+                if(eroso){
+                    totalCell.append($('<div>EROSO:'+toHourAndMinString(eroso)+'</div>'));
+                }
+                if(monteOre < eroso){
+                    totalCell.append($('<div>FERIE CONSUMATE:'+toHourAndMinString(eroso-monteOre)+'</div>'));
+                }else{
+                    totalCell.append($('<div>MONTE ORE RESIDUO:'+toHourAndMinString(monteOre-eroso)+'</div>'));
+                }
+                var totalRow = $('<tr/>').css({textAlign:'right', backgroundColor:cell.attr('bgcolor')}).append($('<td/>')).append($('<td/>')).append(totalCell).append($('<td/>'));
+                row.after(totalRow);
 
             //Tamarrate
             if(times.length == 3){
@@ -248,6 +248,9 @@
             dayRow.append($('<td>OGGI</td>').css({textAlign:'center',backgroundColor:cell.attr('bgcolor')}));
             // Esco dal loop.
             break;
+            }
+        }else{
+            j++;
         }
     }
 
